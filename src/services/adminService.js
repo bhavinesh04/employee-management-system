@@ -1,5 +1,5 @@
 export const createEmployeeApi = async (employeeData, token) => {
-  const res = await fetch("http://localhost:3000/api/admin/create-employee", {
+  const res = await fetch("https://ems-backend-ai4o.onrender.com/api/auth", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

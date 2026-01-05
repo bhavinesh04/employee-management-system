@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000/api/auth"
+const API_URL = "https://ems-backend-ai4o.onrender.com/api/auth"
+
 
 export const loginApi = async (email, password) => {
   try {
