@@ -18,7 +18,8 @@ const ResetEmployeePassword = () => {
       setLoading(true)
 
       const res = await fetch(
-        `http://localhost:3000/api/admin/reset-password/${employeeId}`,
+        `${BASE_URL}
+/api/admin/reset-password/${employeeId}`,
         {
           method: "PATCH",
           headers: {

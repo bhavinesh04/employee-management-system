@@ -22,7 +22,8 @@ const CompleteTask = ({ task }) => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/tasks/${task._id}/complete`,
+        `${BASE_URL}
+/api/tasks/${task._id}/complete`,
         {
           method: "PATCH",
           headers: {

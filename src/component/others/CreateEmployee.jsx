@@ -21,7 +21,8 @@ const CreateEmployee = () => {
       setLoading(true)
 
       const res = await fetch(
-        "http://localhost:3000/api/admin/create-employee",
+        "${BASE_URL}
+/api/admin/create-employee",
         {
           method: "POST",
           headers: {

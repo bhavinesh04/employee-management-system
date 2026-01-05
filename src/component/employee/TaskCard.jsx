@@ -54,7 +54,8 @@ const TaskCard = ({ task }) => {
 {task.taskFile && (
   <div className="mt-2">
     <a
-      href={`http://localhost:3000${task.taskFile}`}
+      href={`${BASE_URL}
+${task.taskFile}`}
       target="_blank"
       rel="noopener noreferrer"
       className="

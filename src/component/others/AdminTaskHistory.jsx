@@ -136,7 +136,8 @@ const AdminTaskHistory = ({
 
                 {task.completedFile && (
                   <a
-                    href={`http://localhost:3000${
+                    href={`${BASE_URL}
+${
                       typeof task.completedFile === "string"
                         ? task.completedFile
                         : task.completedFile.path

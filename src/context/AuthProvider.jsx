@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react"
-import { getMyTasksApi } from "../services/taskService"
+import http from "@/services/http"
 
 export const AuthContext = createContext()
 
@@ -22,55 +22,53 @@ const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  // ✅ Fetch employees ONLY when token exists
+  // ✅ Fetch employees (ADMIN ONLY)
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/employees", {
+      const res = await http.get("/api/admin/employees", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-
-      if (!res.ok) throw new Error("Unauthorized")
-
-      const data = await res.json()
-      setEmployees(Array.isArray(data) ? data : [])
+      setEmployees(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
       setEmployees([])
     }
   }
 
-  // ✅ Proper admin employee fetch
+  // ✅ Auto fetch employees when admin logs in
   useEffect(() => {
-  if (!token || user !== "admin") return
-  fetchEmployees()
-}, [token, user])
+    if (!token || user !== "admin") return
+    fetchEmployees()
+  }, [token, user])
 
-  // ✅ Employee task fetch
+  // ✅ Fetch employee tasks
   const fetchMyTasks = async () => {
     if (!token) return
     try {
-      const tasks = await getMyTasksApi(token)
+      const res = await http.get("/api/employee/tasks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       setUserData(prev => ({
         ...prev,
-        tasks,
+        tasks: Array.isArray(res.data) ? res.data : [],
       }))
     } catch (error) {
+      console.error(error)
     }
   }
 
-  // ✅ Login
+  // ✅ Login (FIXED)
   const login = async (email, password) => {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const res = await http.post("/api/auth/login", {
+        email,
+        password,
       })
 
-      if (!res.ok) return false
-
-      const data = await res.json()
+      const data = res.data
 
       setUser(data.user.role)
       setUserData(data.user.data)

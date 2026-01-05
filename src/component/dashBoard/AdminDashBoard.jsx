@@ -6,9 +6,9 @@ import CreateEmployee from "../others/CreateEmployee"
 import ResetEmployeePassword from "../others/ResetEmployeePassword"
 import AdminTaskHistory from "../others/AdminTaskHistory"
 import AdminSidebar from "../admin/AdminSidebar"
-import { AuthContext } from "../../context/AuthProvider"
 import AdminSendMessage from "../admin/AdminSendMessage"
-
+import { AuthContext } from "../../context/AuthProvider"
+import http from "@/services/http"
 
 const AdminDashBoard = ({ changeUser, data }) => {
   const { token } = useContext(AuthContext)
@@ -21,43 +21,45 @@ const AdminDashBoard = ({ changeUser, data }) => {
   // ---------------- FETCH TASKS ----------------
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/tasks", {
+      const res = await http.get("/api/admin/tasks", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-      const data = await res.json()
-      setTasks(Array.isArray(data) ? data : [])
+      setTasks(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
+      console.error(err)
     }
   }
 
   // ---------------- FETCH EMPLOYEES ----------------
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/employees", {
+      const res = await http.get("/api/admin/employees", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-      const data = await res.json()
-      setEmployees(Array.isArray(data) ? data : [])
+      setEmployees(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
+      console.error(err)
     }
   }
-useEffect(() => {
-  if (isSidebarOpen && window.innerWidth < 768) {
-    document.body.style.overflow = "hidden"
-  } else {
-    document.body.style.overflow = "auto"
-  }
 
-  return () => {
-    document.body.style.overflow = "auto"
-  }
-}, [isSidebarOpen])
+  // ---------------- SIDEBAR SCROLL LOCK ----------------
+  useEffect(() => {
+    if (isSidebarOpen && window.innerWidth < 768) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "auto"
+    }
 
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [isSidebarOpen])
 
+  // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
     if (token) {
       fetchTasks()
@@ -68,58 +70,52 @@ useEffect(() => {
   // ---------------- REASSIGN TASK ----------------
   const handleReassign = async (taskId, employeeId) => {
     try {
-      await fetch(
-        `http://localhost:3000/api/admin/tasks/${taskId}/reassign`,
+      await http.put(
+        `/api/admin/tasks/${taskId}/reassign`,
+        { employeeId },
         {
-          method: "PUT",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ employeeId }),
         }
       )
-
       fetchTasks()
     } catch (err) {
+      console.error(err)
     }
   }
 
+  // ---------------- DELETE TASK ----------------
   const handleDeleteTask = async (taskId) => {
-  try {
-    await fetch(
-      `http://localhost:3000/api/admin/tasks/${taskId}`,
-      {
-        method: "DELETE",
+    try {
+      await http.delete(`/api/admin/tasks/${taskId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
-    )
-
-    fetchTasks()
-  } catch (err) {
+      })
+      fetchTasks()
+    } catch (err) {
+      console.error(err)
+    }
   }
-}
 
-
+  // ---------------- MARK REVIEWED ----------------
   const handleReviewed = async (taskId) => {
-  try {
-    await fetch(
-      `http://localhost:3000/api/admin/tasks/${taskId}/review`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-
-    fetchTasks()
-  } catch (err) {
+    try {
+      await http.patch(
+        `/api/admin/tasks/${taskId}/review`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      fetchTasks()
+    } catch (err) {
+      console.error(err)
+    }
   }
-}
-
 
   // ---------------- EMPLOYEE SUMMARY COUNTS ----------------
   const counts = tasks.reduce((acc, task) => {
@@ -145,39 +141,41 @@ useEffect(() => {
   }, {})
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] ">
+    <div className="min-h-screen bg-[#0B0F1A]">
       {/* HEADER */}
-      <Header changeUser={changeUser} data={data} onMenuClick={() => setIsSidebarOpen(true)} />
-{isSidebarOpen && (
-  <div
-    className="fixed inset-0 bg-black/50 z-30 md:hidden"
-    onClick={() => setIsSidebarOpen(false)}
-  />
-)}
+      <Header
+        changeUser={changeUser}
+        data={data}
+        onMenuClick={() => setIsSidebarOpen(true)}
+      />
 
-      <div className="flex ">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex">
         {/* SIDEBAR */}
         <AdminSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-            isOpen={isSidebarOpen}
-  onClose={() => setIsSidebarOpen(false)}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
 
         {/* MAIN CONTENT */}
         <div className="flex-1 p-6">
-  
-
           {activeTab === "employees" && (
             <EmployeeSummary counts={counts} />
           )}
 
           {activeTab === "tasks" && (
-  <div className="max-w-xl">
-    <CreateTask onTaskCreated={fetchTasks} />
-  </div>
-)}
-
+            <div className="max-w-xl">
+              <CreateTask onTaskCreated={fetchTasks} />
+            </div>
+          )}
 
           {activeTab === "history" && (
             <AdminTaskHistory
@@ -185,14 +183,13 @@ useEffect(() => {
               employees={employees}
               onReassign={handleReassign}
               onReviewed={handleReviewed}
-              onDelete={handleDeleteTask} 
+              onDelete={handleDeleteTask}
             />
           )}
 
           {activeTab === "messages" && (
-  <AdminSendMessage employees={employees} />
-)}
-
+            <AdminSendMessage employees={employees} />
+          )}
 
           {activeTab === "createEmployee" && (
             <div className="max-w-xl">
@@ -204,12 +201,10 @@ useEffect(() => {
             <div className="max-w-xl">
               <ResetEmployeePassword />
             </div>
-            
           )}
-          </div>
         </div>
       </div>
-    
+    </div>
   )
 }
 

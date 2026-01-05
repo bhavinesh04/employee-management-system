@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react"
 import { AuthContext } from "../../context/AuthProvider"
-// import { assignTaskApi } from "../../services/taskService"
+import http from "@/services/http"
 
 const CreateTask = ({ onTaskCreated }) => {
   const { token, employees } = useContext(AuthContext)
@@ -10,52 +10,51 @@ const CreateTask = ({ onTaskCreated }) => {
   const [date, setDate] = useState("")
   const [category, setCategory] = useState("")
   const [employeeId, setEmployeeId] = useState("")
-const [file, setFile] = useState(null)
-
+  const [file, setFile] = useState(null)
 
   const submitHandler = async (e) => {
     e.preventDefault()
 
-    // ✅ BASIC VALIDATION
+    // ✅ Basic validation
     if (!title.trim() || !employeeId) {
       alert("Title and Employee are required")
       return
     }
 
     try {
-    const formData = new FormData()
-    formData.append("title", title)
-    formData.append("description", description)
-    formData.append("date", date)
-    formData.append("category", category)
-    formData.append("assignedTo", employeeId)
+      const formData = new FormData()
+      formData.append("title", title)
+      formData.append("description", description)
+      formData.append("date", date)
+      formData.append("category", category)
+      formData.append("assignedTo", employeeId)
 
-    if (file) {
-      formData.append("file", file)
-    }
+      if (file) {
+        formData.append("file", file)
+      }
 
-    await fetch("http://localhost:3000/api/admin/tasks", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-
-    if (onTaskCreated) {
-      await onTaskCreated()
-    }
-
+      await http.post("/api/admin/tasks", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
       alert("Task assigned successfully")
 
-      // ✅ RESET FORM
+      // ✅ Refresh task list if callback exists
+      if (onTaskCreated) {
+        await onTaskCreated()
+      }
+
+      // ✅ Reset form
       setTitle("")
       setDescription("")
       setDate("")
       setCategory("")
       setEmployeeId("")
+      setFile(null)
     } catch (error) {
+      console.error(error)
       alert("Failed to assign task")
     }
   }
@@ -94,11 +93,11 @@ const [file, setFile] = useState(null)
           className="border p-2 bg-transparent"
         />
 
-    <input
-  type="file"
-  onChange={e => setFile(e.target.files[0])}
-  className="text-gray-300"
-/>
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="text-gray-300"
+        />
 
         <select
           value={employeeId}
@@ -109,7 +108,7 @@ const [file, setFile] = useState(null)
 
           {Array.isArray(employees) &&
             employees
-              .filter(emp => emp && emp._id) // 🛡️ CRASH-PROOF
+              .filter(emp => emp && emp._id)
               .map(emp => (
                 <option key={emp._id} value={emp._id}>
                   {emp.firstName}

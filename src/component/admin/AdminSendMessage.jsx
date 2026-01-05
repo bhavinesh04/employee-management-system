@@ -13,7 +13,8 @@ const fetchSentMessages = async () => {
     try {
       if (!token) return
 
-      const res = await fetch("http://localhost:3000/api/admin/messages", {
+      const res = await fetch("${BASE_URL}
+/api/admin/messages", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +41,8 @@ useEffect(() => {
     try {
       setLoading(true)
 
-      await fetch("http://localhost:3000/api/admin/messages", {
+      await fetch("${BASE_URL}
+/api/admin/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
