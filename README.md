@@ -1,21 +1,44 @@
-Employee Management System (EMS)
 
-Employee Management System (EMS) is a full-stack web application built using the MERN stack to manage employees, tasks, and internal communication within an organization. The system provides role-based access with separate dashboards for admins and employees.
+# Employee Management System (EMS)
 
-Admins can create employees, assign and review tasks, reset passwords, and send messages. Employees can view assigned tasks, submit completed work with file uploads, and track task status. The application uses JWT-based authentication and follows a modern client–server architecture. The UI is fully responsive and optimized for both desktop and mobile devices.
+## Tech Stack
 
-Tech Stack-
+**Frontend**
+- React.js
+- Tailwind CSS
+- Context API
 
-React (Vite), Tailwind CSS
+**Backend**
+- Node.js
+- Express.js
 
-Node.js, Express.js
+**Database**
+- MongoDB (Mongoose)
 
-MongoDB (Atlas)
+**Authentication**
+- JWT (JSON Web Tokens)
 
-JWT Authentication
+**Other**
+- Multer (file uploads)- REST APIs
 
-Deployment-
+## Features
 
-Frontend: Vercel
+### Admin
+- Secure admin login
+- Create, assign, reassign, review, and delete tasks
+- View task history employee-wise
+- Reset employee passwords
+- Send broadcast and individual messages
+- Upload and review employee task submissions
 
-Backend: Render
+### Employee
+- Secure employee login
+- View assigned tasks by status (new, active, completed, failed)
+- Upload completed task files
+- View messages from admin
+- Mobile-friendly dashboard
+
+### General
+- Role-based access control
+- Responsive design (desktop & mobile)
+- Protected routes using JWT
