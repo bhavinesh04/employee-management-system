@@ -1,24 +1,21 @@
-const API_URL = "https://ems-backend-ai4o.onrender.com/api/auth"
+import http from "@/services/http"
 
-
+/**
+ * Login user (Admin / Employee)
+ * @param {string} email
+ * @param {string} password
+ */
 export const loginApi = async (email, password) => {
   try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
+    const res = await http.post("/api/auth/login", {
+      email,
+      password,
     })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      throw new Error(data.message || "Login failed")
-    }
-
-    return data
+    return res.data
   } catch (error) {
-    throw error
+    const message =
+      error.response?.data?.message || "Login failed"
+    throw new Error(message)
   }
 }

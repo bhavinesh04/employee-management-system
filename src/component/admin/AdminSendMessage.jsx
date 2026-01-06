@@ -1,95 +1,78 @@
-import React, { useContext, useState, useEffect } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { AuthContext } from "../../context/AuthProvider"
+import http from "@/services/http"
 
 const AdminSendMessage = ({ employees }) => {
   const { token } = useContext(AuthContext)
 
-  const [content, setContent] = useState("")
-  const [receiverId, setReceiverId] = useState("all")
-  const [loading, setLoading] = useState(false)
-const [sentMessages, setSentMessages] = useState([])
+  const [message, setMessage] = useState("")
+  const [receiverId, setReceiverId] = useState("")
+  const [messages, setMessages] = useState([])
 
-const fetchSentMessages = async () => {
+  // ---------------- FETCH MESSAGES ----------------
+  const fetchMessages = async () => {
+    if (!token) return
     try {
-      if (!token) return
-
-      const res = await fetch("${BASE_URL}
-/api/admin/messages", {
+      const res = await http.get("/api/admin/messages", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-
-      const data = await res.json()
-      setSentMessages(data)
+      setMessages(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
+      console.error(err)
     }
   }
 
-useEffect(() => {
-    fetchSentMessages()
+  useEffect(() => {
+    fetchMessages()
   }, [token])
 
-  const submitHandler = async (e) => {
+  // ---------------- SEND MESSAGE ----------------
+  const sendMessage = async (e) => {
     e.preventDefault()
-
-    if (!content.trim()) {
-      alert("Message cannot be empty")
-      return
-    }
+    if (!message.trim()) return
 
     try {
-      setLoading(true)
-
-      await fetch("${BASE_URL}
-/api/admin/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      await http.post(
+        "/api/admin/messages",
+        {
+          content: message,              // ✅ FIXED
+          receiverId: receiverId || null,
         },
-        body: JSON.stringify({
-          content,
-          receiverId: receiverId === "all" ? null : receiverId,
-        }),
-      })
-await fetchSentMessages()
-      alert("Message sent successfully")
-      setContent("")
-      setReceiverId("all")
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
-      fetchSentMessages()
-
-
-    } catch (error) {
+      setMessage("")
+      setReceiverId("")
+      fetchMessages()
+    } catch (err) {
+      console.error(err.response?.data || err)
       alert("Failed to send message")
-    } finally {
-      setLoading(false)
     }
   }
 
   return (
-    <div className="bg-[#111827] p-6 rounded-xl max-w-2xl">
-      <h2 className="text-xl font-semibold text-white mb-4">
-        Send Message
-      </h2>
-
-      <form onSubmit={submitHandler} className="space-y-4">
+    <div className="bg-[#1C1C1C] p-5 rounded">
+      <form onSubmit={sendMessage} className="space-y-4">
         <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={4}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           placeholder="Write message..."
-          className="w-full bg-[#0F172A] border border-gray-700 text-gray-200 rounded p-3"
+          className="w-full p-2 bg-transparent border rounded"
         />
 
         <select
           value={receiverId}
           onChange={(e) => setReceiverId(e.target.value)}
-          className="w-full bg-[#0F172A] border border-gray-700 text-gray-200 rounded p-2"
+          className="w-full p-2 bg-transparent border rounded"
         >
-          <option value="all">All Employees</option>
-          {employees.map(emp => (
+          <option value="">Send to all employees</option>
+          {employees?.map(emp => (
             <option key={emp._id} value={emp._id}>
               {emp.firstName}
             </option>
@@ -98,17 +81,25 @@ await fetchSentMessages()
 
         <button
           type="submit"
-          disabled={loading}
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+          className="bg-emerald-600 px-4 py-2 rounded hover:bg-emerald-700"
         >
-          {loading ? "Sending..." : "Send Message"}
+          Send Message
         </button>
       </form>
 
-      {/* SENT MESSAGES */}
-      <div className="mt-8 space-y-4"> <h3 className="text-lg font-semibold text-white"> Sent Messages </h3> {sentMessages.map(msg => ( <div key={msg._id} className="bg-[#111827] border border-gray-800 rounded-lg p-4" > <p className="text-sm text-gray-400 mb-1"> To: {msg.receiver ? msg.receiver.firstName : "All Employees"} </p> <p className="text-gray-200"> {msg.content} </p> <p className="text-xs text-gray-500 mt-2"> {new Date(msg.createdAt).toLocaleString()} </p> </div> ))} </div> 
+      <div className="mt-5 space-y-2">
+        {messages.map(msg => (
+          <div key={msg._id} className="border p-2 rounded text-sm">
+            <p>{msg.content}</p>   {/* ✅ FIXED */}
+            {msg.receiver?.firstName && (
+              <p className="text-gray-400 text-xs">
+                To: {msg.receiver.firstName}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-    
   )
 }
 

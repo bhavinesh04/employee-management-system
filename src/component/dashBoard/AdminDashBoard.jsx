@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Header from "../others/Header"
 import CreateTask from "../others/CreateTask"
 import EmployeeSummary from "../others/EmployeeSummary"
@@ -18,35 +18,42 @@ const AdminDashBoard = ({ changeUser, data }) => {
   const [activeTab, setActiveTab] = useState("history")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  // ---------------- FETCH TASKS ----------------
+  /* =========================
+     📋 FETCH TASKS
+     ========================= */
+
   const fetchTasks = async () => {
+    if (!token) return
     try {
       const res = await http.get("/api/admin/tasks", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       setTasks(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
-      console.error(err)
+      console.error("Failed to fetch tasks", err)
     }
   }
 
-  // ---------------- FETCH EMPLOYEES ----------------
+  /* =========================
+     👷 FETCH EMPLOYEES
+     ========================= */
+
   const fetchEmployees = async () => {
+    if (!token) return
     try {
       const res = await http.get("/api/admin/employees", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       setEmployees(Array.isArray(res.data) ? res.data : [])
     } catch (err) {
-      console.error(err)
+      console.error("Failed to fetch employees", err)
     }
   }
 
-  // ---------------- SIDEBAR SCROLL LOCK ----------------
+  /* =========================
+     📱 SIDEBAR SCROLL LOCK
+     ========================= */
+
   useEffect(() => {
     if (isSidebarOpen && window.innerWidth < 768) {
       document.body.style.overflow = "hidden"
@@ -59,90 +66,85 @@ const AdminDashBoard = ({ changeUser, data }) => {
     }
   }, [isSidebarOpen])
 
-  // ---------------- INITIAL LOAD ----------------
+  /* =========================
+     🚀 INITIAL LOAD
+     ========================= */
+
   useEffect(() => {
-    if (token) {
-      fetchTasks()
-      fetchEmployees()
-    }
+    fetchTasks()
+    fetchEmployees()
   }, [token])
 
-  // ---------------- REASSIGN TASK ----------------
+  /* =========================
+     🔁 TASK ACTIONS
+     ========================= */
+
   const handleReassign = async (taskId, employeeId) => {
     try {
       await http.put(
         `/api/admin/tasks/${taskId}/reassign`,
         { employeeId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       fetchTasks()
     } catch (err) {
-      console.error(err)
+      console.error("Failed to reassign task", err)
     }
   }
 
-  // ---------------- DELETE TASK ----------------
   const handleDeleteTask = async (taskId) => {
     try {
       await http.delete(`/api/admin/tasks/${taskId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       fetchTasks()
     } catch (err) {
-      console.error(err)
+      console.error("Failed to delete task", err)
     }
   }
 
-  // ---------------- MARK REVIEWED ----------------
   const handleReviewed = async (taskId) => {
     try {
       await http.patch(
         `/api/admin/tasks/${taskId}/review`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
       fetchTasks()
     } catch (err) {
-      console.error(err)
+      console.error("Failed to review task", err)
     }
   }
 
-  // ---------------- EMPLOYEE SUMMARY COUNTS ----------------
-  const counts = tasks.reduce((acc, task) => {
-    if (!task.assignedTo?.firstName) return acc
+  /* =========================
+     📊 EMPLOYEE SUMMARY
+     ========================= */
 
-    const name = task.assignedTo.firstName
+  const counts = useMemo(() => {
+    return tasks.reduce((acc, task) => {
+      if (!task.assignedTo?.firstName) return acc
 
-    if (!acc[name]) {
-      acc[name] = {
-        newTask: 0,
-        active: 0,
-        completed: 0,
-        failed: 0,
+      const name = task.assignedTo.firstName
+
+      if (!acc[name]) {
+        acc[name] = { newTask: 0, active: 0, completed: 0, failed: 0 }
       }
-    }
 
-    if (task.newTask) acc[name].newTask++
-    if (task.active) acc[name].active++
-    if (task.completed) acc[name].completed++
-    if (task.failed) acc[name].failed++
+      if (task.newTask) acc[name].newTask++
+      if (task.active) acc[name].active++
+      if (task.completed) acc[name].completed++
+      if (task.failed) acc[name].failed++
 
-    return acc
-  }, {})
+      return acc
+    }, {})
+  }, [tasks])
+
+  /* =========================
+     🧱 UI
+     ========================= */
 
   return (
     <div className="min-h-screen bg-[#0B0F1A]">
-      {/* HEADER */}
       <Header
         changeUser={changeUser}
         data={data}
@@ -157,7 +159,6 @@ const AdminDashBoard = ({ changeUser, data }) => {
       )}
 
       <div className="flex">
-        {/* SIDEBAR */}
         <AdminSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -165,7 +166,6 @@ const AdminDashBoard = ({ changeUser, data }) => {
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        {/* MAIN CONTENT */}
         <div className="flex-1 p-6">
           {activeTab === "employees" && (
             <EmployeeSummary counts={counts} />

@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react"
 import { AuthContext } from "../../context/AuthProvider"
+import http from "@/services/http"
 
 const CreateEmployee = () => {
   const { token } = useContext(AuthContext)
@@ -20,22 +21,15 @@ const CreateEmployee = () => {
     try {
       setLoading(true)
 
-      const res = await fetch(
-        "${BASE_URL}
-/api/admin/create-employee",
+      await http.post(
+        "/api/admin/create-employee",
+        { firstName, email, password },
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ firstName, email, password }),
         }
       )
-
-      if (!res.ok) {
-        throw new Error("Failed to create employee")
-      }
 
       alert("Employee created successfully")
 
@@ -43,6 +37,7 @@ const CreateEmployee = () => {
       setEmail("")
       setPassword("")
     } catch (err) {
+      console.error(err)
       alert("Error creating employee")
     } finally {
       setLoading(false)
@@ -78,7 +73,7 @@ const CreateEmployee = () => {
 
         <button
           disabled={loading}
-          className="w-full bg-blue-600 py-2 rounded"
+          className="w-full bg-blue-600 py-2 rounded disabled:opacity-50"
         >
           {loading ? "Creating..." : "Create Employee"}
         </button>

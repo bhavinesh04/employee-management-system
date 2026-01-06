@@ -1,48 +1,71 @@
-import React, { useContext,useState } from 'react'
+import React, { useContext, useState } from "react"
 import { AuthContext } from "@/context/AuthProvider"
 
-const Login = ({handleLogin}) => {
-
+const Login = () => {
   const { login } = useContext(AuthContext)
-  const [email, setEmail] = useState( '')
-  const [password, setPassword] = useState('')
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-
-  const submitHandler = async(e) => {
+  const submitHandler = async (e) => {
     e.preventDefault()
-    const success = login(email, password)
+    setError("")
+    setLoading(true)
 
-     if (!success) {
+    const success = await login(email, password) // ✅ FIX
+
+    if (!success) {
       setError("Invalid credentials")
     }
+
+    setLoading(false)
   }
 
   return (
-    <div className='flex h-screen w-screen items-center justify-center'>
-      <div className='border-2 border-emerald-600 p-20'>
-      <form 
-      onSubmit={(e) => {
-        submitHandler(e)
-      }}
-      className='flex  flex-col items-center justify-center'> 
-        <input value={email} onChange={(e) => {
-          setEmail(e.target.value)
-        }} required className='text-white outline-none bg-transparent placeholder:text-gray-400 border-2 border-emerald-600 py-4 px-3 text-xl rounded-full' type='email' placeholder='enter your email'/>
+    <div className="flex h-screen w-screen items-center justify-center">
+      <div className="border-2 border-emerald-600 p-20 rounded-lg">
+        <form
+          onSubmit={submitHandler}
+          className="flex flex-col items-center justify-center gap-4"
+        >
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            type="email"
+            placeholder="Enter your email"
+            className="text-white outline-none bg-transparent placeholder:text-gray-400 border-2 border-emerald-600 py-4 px-4 text-lg rounded-full w-72"
+          />
 
-        <input 
-        value={password}
-        onChange={(e) => {
-          setPassword(e.target.value)
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            type="password"
+            placeholder="Enter your password"
+            className="text-white outline-none bg-transparent placeholder:text-gray-400 border-2 border-emerald-600 py-4 px-4 text-lg rounded-full w-72"
+          />
 
-        }} className=' mt-4 text-white outline-none bg-transparent placeholder:text-gray-400 border-2 border-emerald-600 py-4 px-3 text-xl rounded-full' type='password' placeholder='enter a password'/>
+          <button
+            disabled={loading}
+            className={`mt-2 text-white py-3 px-6 text-lg rounded-full transition ${
+              loading
+                ? "bg-emerald-400 cursor-not-allowed"
+                : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
+          >
+            {loading ? "Logging in..." : "Log in"}
+          </button>
 
-        <button className=' mt-5 text-white outline-none  placeholder:text-white border-none bg-emerald-600 py-3 px-5 text-xl rounded-full '>Log in</button>
-        {error && <p className="text-red-500">{error}</p>}
-      </form>
+          {error && (
+            <p className="text-red-500 mt-2 text-sm">{error}</p>
+          )}
+        </form>
       </div>
-      </div>
+    </div>
   )
 }
 
-export default Login;
+export default Login

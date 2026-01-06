@@ -1,13 +1,8 @@
 import React from "react"
 
-const badgeColors = {
-  history: "bg-green-600",
-}
-
 const AdminSidebar = ({
   activeTab,
   setActiveTab,
-  counts,
   isOpen,
   onClose,
 }) => {
@@ -20,12 +15,13 @@ const AdminSidebar = ({
         transform transition-transform duration-300
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0
+        flex flex-col   /* ✅ REQUIRED FOR mt-auto */
       `}
     >
       {/* ❌ Close button (mobile only) */}
       <button
         onClick={onClose}
-        className="md:hidden text-gray-400 text-xl mb-6"
+        className="md:hidden text-gray-400 text-xl mb-6 self-end"
       >
         ✕
       </button>
@@ -43,8 +39,6 @@ const AdminSidebar = ({
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onClose={onClose}
-          badge={counts?.history}
-          color={badgeColors.history}
         />
 
         <SidebarItem
@@ -65,8 +59,7 @@ const AdminSidebar = ({
       </div>
 
       {/* PUSH TO BOTTOM */}
-     <div className="mt-auto pt-6 border-t border-gray-800 space-y-2">
-
+      <div className="mt-auto pt-6 border-t border-gray-800 space-y-2">
         <SidebarItem
           label="Create New Employee"
           tab="createEmployee"
@@ -77,14 +70,12 @@ const AdminSidebar = ({
         />
 
         <SidebarItem
-        
           label="Reset Password"
           tab="resetPassword"
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onClose={onClose}
           danger
-          
         />
       </div>
     </aside>
@@ -101,17 +92,14 @@ const SidebarItem = ({
   activeTab,
   setActiveTab,
   onClose,
-  badge,
-  color,
   danger = false,
 }) => {
   return (
     <button
-    onClick={() => {
-  setActiveTab(tab)
-  onClose?.()   // ✅ SAFE CALL
-}}
-
+      onClick={() => {
+        setActiveTab(tab)
+        onClose?.() // ✅ SAFE CALL
+      }}
       className={`
         w-full flex justify-between items-center
         px-4 py-2.5 rounded-lg transition
@@ -127,14 +115,6 @@ const SidebarItem = ({
       `}
     >
       <span>{label}</span>
-
-      {badge !== undefined && (
-        <span
-          className={`text-xs px-2 py-0.5 rounded-full ${color}`}
-        >
-          {badge}
-        </span>
-      )}
     </button>
   )
 }

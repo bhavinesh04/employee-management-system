@@ -6,7 +6,6 @@ const badgeColors = {
   active: "bg-yellow-500 text-black",
   completed: "bg-green-600",
   failed: "bg-red-700",
-  messages: "bg-indigo-600",
 }
 
 const EmployeeSidebar = ({
@@ -34,12 +33,13 @@ const EmployeeSidebar = ({
         transform transition-transform duration-300
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0
+        flex flex-col   /* ✅ allows bottom alignment later */
       `}
     >
       {/* ❌ Close button (mobile only) */}
       <button
-        onClick={onClose}
-        className="md:hidden text-gray-400 text-xl mb-6"
+        onClick={() => onClose?.()}
+        className="md:hidden text-gray-400 text-xl mb-6 self-end"
       >
         ✕
       </button>
@@ -54,7 +54,7 @@ const EmployeeSidebar = ({
             key={item.key}
             onClick={() => {
               setActiveTab(item.key)
-              onClose() // ✅ auto-close on mobile
+              onClose?.() // ✅ SAFE
             }}
             className={`w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition
               ${
@@ -65,13 +65,16 @@ const EmployeeSidebar = ({
           >
             <span>{item.label}</span>
 
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                badgeColors[item.key]
-              }`}
-            >
-              {item.key === "messages" ? "" : counts[item.key] || 0}
-            </span>
+            {/* ✅ Badge only for task tabs */}
+            {item.key !== "messages" && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  badgeColors[item.key]
+                }`}
+              >
+                {counts[item.key] || 0}
+              </span>
+            )}
           </button>
         ))}
       </div>

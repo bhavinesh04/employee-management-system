@@ -7,11 +7,16 @@ const ReassignTask = ({ task, setTasks }) => {
   const [employeeId, setEmployeeId] = useState("")
   const [loading, setLoading] = useState(false)
 
-  if (!task || !task._id) return null
+  if (!task?._id) return null
 
   const handleReassign = async () => {
     if (!employeeId) {
-      alert("Select an employee")
+      alert("Please select an employee")
+      return
+    }
+
+    if (employeeId === task.assignedTo?._id) {
+      alert("Task is already assigned to this employee")
       return
     }
 
@@ -24,7 +29,7 @@ const ReassignTask = ({ task, setTasks }) => {
         token
       )
 
-      // ✅ UPDATE ONLY THIS TASK (NO REFRESH)
+      // ✅ Update only affected task (optimistic UI)
       setTasks(prev =>
         prev.map(t =>
           t._id === updatedTask._id ? updatedTask : t
@@ -33,20 +38,28 @@ const ReassignTask = ({ task, setTasks }) => {
 
       setEmployeeId("")
     } catch (err) {
-      alert("Failed to reassign task")
+      console.error(err)
+      alert("Failed to reassign task. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex gap-2 items-center mt-2">
+    <div className="flex gap-2 items-center mt-3">
       <select
         value={employeeId}
         onChange={(e) => setEmployeeId(e.target.value)}
-        className="border px-2 py-1 bg-transparent text-sm"
+        className="
+          border border-gray-700
+          px-2 py-1
+          bg-transparent
+          text-sm
+          rounded
+          text-gray-200
+        "
       >
-        <option value="">Reassign to</option>
+        <option value="">Reassign to…</option>
 
         {Array.isArray(employees) &&
           employees
@@ -61,7 +74,14 @@ const ReassignTask = ({ task, setTasks }) => {
       <button
         onClick={handleReassign}
         disabled={loading}
-        className="bg-yellow-500 px-3 py-1 rounded text-black text-sm"
+        className={`
+          px-3 py-1 rounded text-sm transition
+          ${
+            loading
+              ? "bg-yellow-400 cursor-not-allowed text-black"
+              : "bg-yellow-500 hover:bg-yellow-600 text-black"
+          }
+        `}
       >
         {loading ? "Reassigning..." : "Reassign"}
       </button>

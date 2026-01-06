@@ -1,41 +1,49 @@
-import React, { useContext } from "react"
+import React, { useContext, useState } from "react"
 import { AuthContext } from "../../context/AuthProvider"
-import { failTaskApi } from "../../services/taskService"
+import { failTaskApi, getMyTasksApi } from "../../services/taskService"
 
 const FailedTask = ({ task }) => {
   const { token, setUserData } = useContext(AuthContext)
+  const [loading, setLoading] = useState(false)
 
-  if (!task) return null
+  if (!task?._id) return null
 
   const handleFail = async () => {
     try {
-      const updatedTask = await failTaskApi(task._id, token)
+      setLoading(true)
+
+      await failTaskApi(task._id, token)
+
+      // 🔄 Always refetch fresh tasks
+      const freshTasks = await getMyTasksApi(token)
 
       setUserData(prev => ({
         ...prev,
-        tasks: prev.tasks.map(t =>
-          t._id === updatedTask._id ? updatedTask : t
-        )
+        tasks: freshTasks,
       }))
     } catch (err) {
+      console.error(err)
+      alert("Failed to mark task as failed")
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <button
       onClick={handleFail}
-      className="
-        px-4 py-2
-        rounded-md
-        border border-red-600
-        text-white-500
-        bg-red-500
-        text-sm
-        hover:bg-red-600 hover:text-white
-        transition
-      "
+      disabled={loading}
+      className={`
+        px-4 py-2 rounded-md text-sm transition
+        ${
+          loading
+            ? "bg-red-400 cursor-not-allowed"
+            : "bg-red-500 hover:bg-red-600"
+        }
+        text-white
+      `}
     >
-      ❌ Mark as Failed
+      {loading ? "Updating..." : "❌ Mark as Failed"}
     </button>
   )
 }

@@ -1,6 +1,9 @@
 import React, { useState } from "react"
 import { isOverdue } from "../../utils/taskUtils"
 
+// 🔗 Backend base URL (for files)
+const BASE_URL = import.meta.env.VITE_BASE_URL
+
 const statusStyles = {
   newTask: "bg-blue-600/20 text-blue-400",
   active: "bg-yellow-500/20 text-yellow-400",
@@ -12,16 +15,24 @@ const overdueCardStyle =
   "border-red-600 shadow-[0_0_0_1px_rgba(220,38,38,0.6)]"
 
 const getStatus = task => {
-  if (task.reviewed)
-    return { label: "Reviewed", style: "bg-green-700/30 text-green-300" }
-  if (task.completed)
+  if (task.reviewed) {
+    return {
+      label: "Reviewed",
+      style: "bg-green-700/30 text-green-300",
+    }
+  }
+  if (task.completed) {
     return { label: "Completed", style: statusStyles.completed }
-  if (task.failed)
+  }
+  if (task.failed) {
     return { label: "Failed", style: statusStyles.failed }
-  if (isOverdue(task))
+  }
+  if (isOverdue(task)) {
     return { label: "Overdue", style: "bg-red-600/30 text-red-400" }
-  if (task.active)
+  }
+  if (task.active) {
     return { label: "Active", style: statusStyles.active }
+  }
   return { label: "New", style: statusStyles.newTask }
 }
 
@@ -134,14 +145,10 @@ const AdminTaskHistory = ({
                   {status.label}
                 </span>
 
+                {/* 📎 COMPLETED FILE */}
                 {task.completedFile && (
                   <a
-                    href={`${BASE_URL}
-${
-                      typeof task.completedFile === "string"
-                        ? task.completedFile
-                        : task.completedFile.path
-                    }`}
+                    href={`${BASE_URL}${task.completedFile}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-sm text-blue-400 hover:underline mb-2"

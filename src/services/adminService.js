@@ -1,18 +1,26 @@
+import http from "@/services/http"
+
+/**
+ * Create a new employee (ADMIN ONLY)
+ * @param {Object} employeeData - { firstName, email, password }
+ * @param {string} token - JWT token
+ */
 export const createEmployeeApi = async (employeeData, token) => {
-  const res = await fetch("https://ems-backend-ai4o.onrender.com/api/auth", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(employeeData)
-  })
+  try {
+    const res = await http.post(
+      "/api/admin/create-employee",
+      employeeData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
-  const data = await res.json()
-
-  if (!res.ok) {
-    throw new Error(data.message || "Failed to create employee")
+    return res.data
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "Failed to create employee"
+    throw new Error(message)
   }
-
-  return data
 }

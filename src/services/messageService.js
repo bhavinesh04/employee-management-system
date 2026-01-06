@@ -1,39 +1,41 @@
-const BASE_URL = "https://ems-backend-ai4o.onrender.com"
+import http from "@/services/http"
 
-// ================= ADMIN =================
+/* =========================
+   👷 EMPLOYEE
+   ========================= */
 
-// Admin sends message (broadcast or to specific employee)
-export const sendMessageApi = async (messageData, token) => {
-  const res = await fetch(`${BASE_URL}/api/messages/admin`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(messageData),
-  })
-
-  if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.message || "Failed to send message")
-  }
-
-  return res.json()
-}
-
-// ================= EMPLOYEE =================
-
-// Employee fetches messages
 export const getEmployeeMessagesApi = async (token) => {
-  const res = await fetch(`${BASE_URL}/api/messages/employee`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  try {
+    const res = await http.get("/api/messages/employee", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
 
-  if (!res.ok) {
+    return res.data
+  } catch (error) {
     throw new Error("Failed to fetch messages")
   }
+}
 
-  return res.json()
+/* =========================
+   👑 ADMIN
+   ========================= */
+
+export const sendMessageApi = async (messageData, token) => {
+  try {
+    const res = await http.post(
+      "/api/messages/admin",   // ✅ FIXED
+      messageData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    return res.data
+  } catch (error) {
+    throw new Error("Failed to send message")
+  }
 }

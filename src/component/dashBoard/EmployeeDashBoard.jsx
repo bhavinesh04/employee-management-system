@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Header from "../others/Header"
 import EmployeeSidebar from "../employee/EmployeeSidebar"
 import TaskCard from "../employee/TaskCard"
@@ -7,15 +7,15 @@ import { getMyTasksApi } from "../../services/taskService"
 import { getEmployeeMessagesApi } from "../../services/messageService"
 import { isOverdue } from "../../utils/taskUtils"
 
-
 const EmployeeDashBoard = ({ changeUser }) => {
   const { token, userData, setUserData } = useContext(AuthContext)
 
   const [activeTab, setActiveTab] = useState("new")
   const [messages, setMessages] = useState([])
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   /* =======================
-     FETCH EMPLOYEE MESSAGES
+     📨 FETCH MESSAGES
      ======================= */
   useEffect(() => {
     if (!token) return
@@ -23,9 +23,9 @@ const EmployeeDashBoard = ({ changeUser }) => {
     const fetchMessages = async () => {
       try {
         const data = await getEmployeeMessagesApi(token)
-        setMessages(data)
-      } catch (_) {
-        // intentionally silent (presentation clean)
+        setMessages(Array.isArray(data) ? data : [])
+      } catch {
+        // silent fail (UX clean)
       }
     }
 
@@ -33,7 +33,7 @@ const EmployeeDashBoard = ({ changeUser }) => {
   }, [token])
 
   /* =======================
-     FETCH EMPLOYEE TASKS
+     📋 FETCH TASKS
      ======================= */
   useEffect(() => {
     if (!token) return
@@ -42,8 +42,8 @@ const EmployeeDashBoard = ({ changeUser }) => {
       try {
         const tasks = await getMyTasksApi(token)
         setUserData(prev => ({ ...prev, tasks }))
-      } catch (_) {
-        // intentionally silent
+      } catch {
+        // silent fail
       }
     }
 
@@ -57,54 +57,60 @@ const EmployeeDashBoard = ({ changeUser }) => {
   const tasks = userData.tasks || []
 
   /* =======================
-     TASK COUNTS (SIDEBAR)
+     📊 TASK COUNTS
      ======================= */
-  const counts = {
-    new: tasks.filter(t => t.newTask).length,
-    overdue: tasks.filter(t => isOverdue(t)).length,
-    active: tasks.filter(t => t.active && !isOverdue(t)).length,
-    completed: tasks.filter(t => t.completed).length,
-    failed: tasks.filter(t => t.failed).length,
-  }
+  const counts = useMemo(
+    () => ({
+      new: tasks.filter(t => t.newTask).length,
+      overdue: tasks.filter(t => isOverdue(t)).length,
+      active: tasks.filter(t => t.active && !isOverdue(t)).length,
+      completed: tasks.filter(t => t.completed).length,
+      failed: tasks.filter(t => t.failed).length,
+    }),
+    [tasks]
+  )
 
   /* =======================
-     FILTERED TASKS
+     🔍 FILTERED TASKS
      ======================= */
-  const filteredTasks = tasks.filter(task => {
-    if (activeTab === "new") return task.newTask
-    if (activeTab === "overdue") return isOverdue(task)
-    if (activeTab === "active") return task.active && !isOverdue(task)
-    if (activeTab === "completed") return task.completed
-    if (activeTab === "failed") return task.failed
-    return false
-  })
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      if (activeTab === "new") return task.newTask
+      if (activeTab === "overdue") return isOverdue(task)
+      if (activeTab === "active") return task.active && !isOverdue(task)
+      if (activeTab === "completed") return task.completed
+      if (activeTab === "failed") return task.failed
+      return false
+    })
+  }, [tasks, activeTab])
 
   return (
     <div className="min-h-screen bg-[#0B0F1A]">
-      <Header changeUser={changeUser} data={userData} onMenuClick={() => setIsSidebarOpen(true)}/>
+      <Header
+        changeUser={changeUser}
+        data={userData}
+        onMenuClick={() => setIsSidebarOpen(true)}
+      />
 
-{isSidebarOpen && (
-  <div
-    className="fixed inset-0 bg-black/50 z-30 md:hidden"
-    onClick={() => setIsSidebarOpen(false)}
-  />
-)}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       <div className="flex">
         <EmployeeSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           counts={counts}
-            isOpen={isSidebarOpen}
-  onClose={() => setIsSidebarOpen(false)}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
 
         <div className="flex-1 p-4 md:p-6 overflow-y-auto">
-
           {/* =======================
-             📨 MESSAGES TAB
+             📨 MESSAGES
              ======================= */}
           {activeTab === "messages" && (
             <div>
@@ -120,7 +126,7 @@ const EmployeeDashBoard = ({ changeUser }) => {
                   >
                     <p className="text-sm text-gray-400">
                       <strong className="text-white">From:</strong>{" "}
-                      {msg.sender?.name || "Admin"}
+                      {msg.sender?.firstName || "Admin"}
                     </p>
 
                     <div className="text-white mt-1 break-words">
@@ -137,7 +143,7 @@ const EmployeeDashBoard = ({ changeUser }) => {
           )}
 
           {/* =======================
-             📋 TASKS TAB
+             📋 TASKS
              ======================= */}
           {activeTab !== "messages" && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -152,7 +158,6 @@ const EmployeeDashBoard = ({ changeUser }) => {
               )}
             </div>
           )}
-
         </div>
       </div>
     </div>
