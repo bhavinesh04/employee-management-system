@@ -1,23 +1,33 @@
 import jwt from "jsonwebtoken"
-import User from "../models/User.js"
+
+/* =========================
+   🔐 AUTH MIDDLEWARE
+   ========================= */
 
 export const protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1]
-
-  if (!token) {
-    return res.status(401).json({ message: "Not authorized" })
-  }
-
+  console.log("🔐 AUTH HEADER:", req.headers.authorization)
   try {
+    // Expect: Authorization: Bearer <token>
+    const authHeader = req.headers.authorization
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Not authorized, no token" })
+    }
+
+    const token = authHeader.split(" ")[1]
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    // 🔥 NORMALIZE USER OBJECT (IMPORTANT)
+
+    console.log("✅ DECODED USER:", decoded)
+
+    // ✅ Normalize user object for entire app
     req.user = {
-      id: decoded.id || decoded._id,   // ✅ works for ALL tokens
+      id: decoded.id || decoded._id,
       role: decoded.role,
     }
-  
+
     next()
-  } catch {
-    res.status(401).json({ message: "Invalid token" })
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid or expired token" })
   }
 }

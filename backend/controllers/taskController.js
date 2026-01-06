@@ -1,24 +1,23 @@
 import Task from "../models/Task.js"
 import User from "../models/User.js"
 
+/* =========================
+   📌 ADMIN – ASSIGN TASK
+   ========================= */
+
 export const assignTask = async (req, res) => {
   try {
-
     const { title, description, date, category, assignedTo } = req.body
 
-    if (!assignedTo) {
-  
-      return res.status(400).json({ message: "assignedTo missing" })
+    if (!title || !assignedTo) {
+      return res
+        .status(400)
+        .json({ message: "Title and employee are required" })
     }
 
     const employee = await User.findById(assignedTo)
-
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" })
-    }
-
-    if (employee.role !== "employee") {
-      return res.status(403).json({ message: "User is not employee" })
+    if (!employee || employee.role !== "employee") {
+      return res.status(400).json({ message: "Invalid employee" })
     }
 
     const task = await Task.create({
@@ -27,54 +26,87 @@ export const assignTask = async (req, res) => {
       date,
       category,
       assignedTo: employee._id,
-      active: false,
       newTask: true,
+      active: false,
       completed: false,
       failed: false,
+      reviewed: false,
+      completedFile: null,
     })
 
-    return res.status(201).json({ message: "Task assigned successfully", task })
+    res.status(201).json({
+      message: "Task assigned successfully",
+      task,
+    })
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message })
-  }
-}
-
-
-export const getMyTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({ assignedTo: req.user.id })
-    res.json(tasks)
-  } catch (error) {
+    console.error(error)
     res.status(500).json({ message: "Server error" })
   }
 }
+
+/* =========================
+   👨‍💻 EMPLOYEE – GET MY TASKS
+   ========================= */
+
+export const getMyTasks = async (req, res) => {
+    console.log("📋 GET MY TASKS HIT")
+  console.log("👤 USER ID:", req.user.id)
+  try {
+    const tasks = await Task.find({
+      assignedTo: req.user.id,
+    }).sort({ createdAt: -1 })
+ console.log("📦 TASKS FOUND:", tasks.length)
+    res.status(200).json(tasks)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Failed to fetch tasks" })
+  }
+}
+
+/* =========================
+   👨‍💻 EMPLOYEE – ACCEPT TASK
+   ========================= */
 
 export const acceptTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
-    if (!task) return res.status(404).json({ message: "Task not found" })
 
-    task.active = true
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" })
+    }
+
+    // ensure employee owns task
+    if (task.assignedTo.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized action" })
+    }
+
     task.newTask = false
-    await task.save()
+    task.active = true
+    task.completed = false
+    task.failed = false
 
-    res.json(task)
+    await task.save()
+    res.status(200).json(task)
   } catch (error) {
-    res.status(500).json({ message: "Server error" })
+    console.error(error)
+    res.status(500).json({ message: "Failed to accept task" })
   }
 }
 
+/* =========================
+   👨‍💻 EMPLOYEE – COMPLETE TASK
+   ========================= */
+
 export const completeTask = async (req, res) => {
   try {
-
-    if (req.user.role !== "employee") {
-      return res.status(403).json({ message: "Only employees can complete tasks" })
-    }
-
     const task = await Task.findById(req.params.id)
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" })
+    }
+
+    if (task.assignedTo.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized action" })
     }
 
     task.completed = true
@@ -82,22 +114,23 @@ export const completeTask = async (req, res) => {
     task.failed = false
     task.newTask = false
 
-    //save file path
-    if (req.file) {
-  task.completedFile = {
-    name: req.file.originalname,
-    path: `/uploads/${req.file.filename}`,
-  }
+    // Save completed file if uploaded
+   if (req.file) {
+  task.completedFile = `/uploads/${req.file.filename}`
 }
 
 
     await task.save()
-
-    res.json(task)
+    res.status(200).json(task)
   } catch (error) {
-    res.status(500).json({ message: "Server error" })
+    console.error(error)
+    res.status(500).json({ message: "Failed to complete task" })
   }
 }
+
+/* =========================
+   👨‍💻 EMPLOYEE – FAIL TASK
+   ========================= */
 
 export const failTask = async (req, res) => {
   try {
@@ -107,18 +140,19 @@ export const failTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" })
     }
 
+    if (task.assignedTo.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized action" })
+    }
+
     task.failed = true
     task.completed = false
     task.active = false
     task.newTask = false
 
     await task.save()
-    res.json(task)
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fail task" })
+    res.status(200).json(task)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Failed to mark task as failed" })
   }
 }
-
-
-
-

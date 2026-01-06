@@ -18,24 +18,52 @@ import {
 
 const router = express.Router()
 
-// 🔒 PROTECT EVERYTHING BELOW
+/* =========================
+   🔒 ADMIN AUTH GUARD
+   ========================= */
 router.use(protect)
 router.use(authorizeRoles("admin"))
 
-// ---------------- EMPLOYEES ----------------
+/* =========================
+   👥 EMPLOYEE MANAGEMENT
+   ========================= */
+
+// GET /api/admin/employees
 router.get("/employees", getAllEmployees)
+
+// POST /api/admin/create-employee
 router.post("/create-employee", createEmployee)
+
+// PATCH /api/admin/reset-password
 router.patch("/reset-password", resetEmployeePassword)
 
-// ---------------- TASKS ----------------
+/* =========================
+   📋 TASK MANAGEMENT (ADMIN)
+   ========================= */
+
+// GET /api/admin/tasks
 router.get("/tasks", getAllTasks)
+
+// POST /api/admin/tasks
 router.post("/tasks", upload.single("file"), createTask)
+
+// PATCH /api/admin/tasks/:id/reassign
 router.patch("/tasks/:id/reassign", reassignTask)
+
+// PATCH /api/admin/tasks/:id/review
 router.patch("/tasks/:id/review", reviewTask)
+
+// DELETE /api/admin/tasks/:id
 router.delete("/tasks/:id", deleteTask)
 
-// ---------------- MESSAGES ----------------
+/* =========================
+   💬 ADMIN MESSAGES
+   ========================= */
+
+// POST /api/admin/messages
 router.post("/messages", sendMessage)
+
+// GET /api/admin/messages
 router.get("/messages", getAdminMessages)
 
 export default router

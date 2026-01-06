@@ -3,6 +3,7 @@ dotenv.config()
 
 import express from "express"
 import cors from "cors"
+import path from "path"
 
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
@@ -17,19 +18,45 @@ connectDB()
 
 const app = express()
 
-// 🔧 Middleware
-app.use(cors())
-app.use(express.json())
+/* =========================
+   🔧 GLOBAL MIDDLEWARE
+   ========================= */
 
-// 🔐 Auth Routes
+// CORS (safe default – frontend friendly)
+app.use(
+  cors({
+    origin: "*", // 🔁 later you can restrict to frontend URL
+    credentials: true,
+  })
+)
+
+app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ extended: true }))
+
+/* =========================
+   📁 STATIC FILES (UPLOADS)
+   ========================= */
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")))
+
+/* =========================
+   🔐 AUTH ROUTES
+   ========================= */
+
 app.use("/api/auth", authRoutes)
 
-// ✅ Health Check Route (IMPORTANT FOR DEPLOYMENT)
+/* =========================
+   🩺 HEALTH CHECK
+   ========================= */
+
 app.get("/", (req, res) => {
-  res.send("EMS Backend is running 🚀")
+  res.status(200).send("EMS Backend is running 🚀")
 })
 
-// 🔒 Protected Test Route
+/* =========================
+   🔒 TEST PROTECTED ROUTE
+   ========================= */
+
 app.get("/api/protected", protect, (req, res) => {
   res.json({
     message: "Protected data accessed",
@@ -37,22 +64,42 @@ app.get("/api/protected", protect, (req, res) => {
   })
 })
 
-// 👑 Admin Routes
+/* =========================
+   👑 ADMIN ROUTES
+   ========================= */
+
 app.use("/api/admin", adminRoutes)
 
-// 👷 Employee Routes
+/* =========================
+   👷 EMPLOYEE ROUTES
+   ========================= */
+
 app.use("/api/employee", employeeRoutes)
 
-// 📋 Task Routes
+/* =========================
+   📋 TASK ROUTES (ADMIN ONLY)
+   ========================= */
+
 app.use("/api/tasks", taskRoutes)
 
-// 💬 Message Routes
+/* =========================
+   💬 MESSAGE ROUTES
+   ========================= */
+
 app.use("/api/messages", messageRoutes)
 
-// 📁 File Uploads (Multer)
-app.use("/uploads", express.static("uploads"))
+/* =========================
+   ❌ 404 HANDLER
+   ========================= */
 
-// 🚀 Server Start
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" })
+})
+
+/* =========================
+   🚀 START SERVER
+   ========================= */
+
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
