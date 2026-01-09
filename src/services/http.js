@@ -1,10 +1,9 @@
 import axios from "axios"
 
 const http = axios.create({
- baseURL: import.meta.env.VITE_API_URL,
-
+  baseURL: "https://employee-management-system-jv0w.onrender.com",
 })
-console.log("API URL 👉", import.meta.env.VITE_API_URL)
 
+console.log("API URL 👉", "https://employee-management-system-jv0w.onrender.com")
 
 export default http

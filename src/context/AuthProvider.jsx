@@ -61,37 +61,39 @@ const AuthProvider = ({ children }) => {
   }
 
   // ✅ Login (FIXED)
-  const login = async (email, password) => {
-    try {
-      const res = await http.post("/api/auth/login", {
-        email,
-        password,
+const login = async (email, password) => {
+  try {
+    const res = await http.post("/api/auth/login", {
+      email,
+      password,
+    })
+
+    const data = res.data
+
+    setUser(data.user.role)
+    setUserData(data.user)
+    setToken(data.token)
+
+    localStorage.setItem(
+      "loggedInUser",
+      JSON.stringify({
+        role: data.user.role,
+        data: data.user,
+        token: data.token,
       })
+    )
 
-      const data = res.data
-
-      setUser(data.user.role)
-      setUserData(data.user.data)
-      setToken(data.token)
-
-      localStorage.setItem(
-        "loggedInUser",
-        JSON.stringify({
-          role: data.user.role,
-          data: data.user.data,
-          token: data.token,
-        })
-      )
-
-      if (data.user.role === "employee") {
-        await fetchMyTasks()
-      }
-
-      return true
-    } catch (error) {
-      return false
+    if (data.user.role === "employee") {
+      await fetchMyTasks()
     }
+
+    return true
+  } catch (error) {
+    console.error("LOGIN ERROR:", error.response?.data || error.message)
+    return false
   }
+}
+
 
   // ✅ Logout
   const logout = () => {
