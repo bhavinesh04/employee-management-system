@@ -63,7 +63,7 @@ const AuthProvider = ({ children }) => {
   // ✅ Login (FIXED)
 const login = async (email, password) => {
   try {
-    const res = await http.post("/api/auth/login", {
+    const res = await http.post("https://employee-management-system-jv0w.onrender.com/api/auth/login", {
       email,
       password,
     })
