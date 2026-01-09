@@ -7,6 +7,8 @@ import AdminDashBoard from './component/dashBoard/AdminDashBoard'
 import { AuthContext } from '@/context/AuthProvider'
 // import admin from './data/admin';
 // import employees from './data/employees';
+console.log("🔥 FRONTEND BOOTED")
+console.log("API URL =", import.meta.env.VITE_API_URL)
 
 const App = () => {
 
