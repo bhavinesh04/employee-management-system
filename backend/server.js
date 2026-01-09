@@ -15,9 +15,18 @@ import taskRoutes from "./routes/taskRoutes.js"
 import messageRoutes from "./routes/messageRoutes.js"
 import { protect } from "./middleware/authMiddleware.js"
 
+import fs from "fs"
+
+
 // 🔌 Connect Database
 connectDB()
 
+//files upload 
+const uploadDir = path.join(process.cwd(), "uploads")
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir)
+}
 const app = express()
 
 /* =========================
@@ -91,12 +100,6 @@ app.use("/api/tasks", taskRoutes)
 app.use("/api/messages", messageRoutes)
 
 
-app.get("/__routes", (req, res) => {
-  res.json(app._router.stack
-    .filter(r => r.route)
-    .map(r => r.route.path))
-})
-
 /* =========================
    ❌ 404 HANDLER
    ========================= */
@@ -104,6 +107,8 @@ app.get("/__routes", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" })
 })
+
+
 
 /* =========================
    🚀 START SERVER

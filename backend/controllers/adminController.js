@@ -126,7 +126,8 @@ export const createTask = async (req, res) => {
       failed: false,
       reviewed: false,
       completedFile: null,
-      taskFile: req.file ? `/uploads/${req.file.filename}` : null,
+      taskFile: req.file?.filename || null,
+
     })
 
     res.status(201).json(task)

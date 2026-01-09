@@ -41,7 +41,8 @@ const Header = ({ changeUser, data, onMenuClick }) => {
         <h1 className="text-gray-400 text-lg leading-tight">
           Hello <br />
           <span className="text-2xl font-semibold text-white">
-            {data?.firstName} 👋
+            {data?.firstName || "User"} 👋
+
 
 
           </span>

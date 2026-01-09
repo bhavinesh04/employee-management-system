@@ -10,8 +10,9 @@ import AdminSendMessage from "../admin/AdminSendMessage"
 import { AuthContext } from "../../context/AuthProvider"
 import http from "@/services/http"
 
-const AdminDashBoard = ({ changeUser, data }) => {
-  const { token } = useContext(AuthContext)
+const AdminDashBoard = ({ changeUser }) => {
+  const { token, userData } = useContext(AuthContext)
+
 
   const [tasks, setTasks] = useState([])
   const [employees, setEmployees] = useState([])
@@ -146,10 +147,11 @@ const AdminDashBoard = ({ changeUser, data }) => {
   return (
     <div className="min-h-screen bg-[#0B0F1A]">
       <Header
-        changeUser={changeUser}
-        data={data}
-        onMenuClick={() => setIsSidebarOpen(true)}
-      />
+  changeUser={changeUser}
+  data={userData}
+  onMenuClick={() => setIsSidebarOpen(true)}
+/>
+
 
       {isSidebarOpen && (
         <div
