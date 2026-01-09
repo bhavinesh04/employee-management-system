@@ -1,3 +1,5 @@
+console.log("🔥🔥 SERVER.JS FROM GITHUB LATEST VERSION 🔥🔥")
+
 import dotenv from "dotenv"
 dotenv.config()
 
