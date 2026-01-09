@@ -88,6 +88,13 @@ app.use("/api/tasks", taskRoutes)
 
 app.use("/api/messages", messageRoutes)
 
+
+app.get("/__routes", (req, res) => {
+  res.json(app._router.stack
+    .filter(r => r.route)
+    .map(r => r.route.path))
+})
+
 /* =========================
    ❌ 404 HANDLER
    ========================= */
