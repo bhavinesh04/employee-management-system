@@ -1,3 +1,5 @@
+console.log("✅ authRoutes.js LOADED")
+
 import express from "express"
 import { loginUser } from "../controllers/authController.js"
 import bcrypt from "bcryptjs"
